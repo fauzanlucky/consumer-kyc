@@ -1,0 +1,46 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - echo install steps...
+  pre_build:
+    commands:
+      - ls -la
+      - git clone https://github.com/awslabs/git-secrets.git
+      - cd git-secrets && make install
+      - git secrets --register-aws --global
+      - ls -la
+      - export GIT_DISCOVERY_ACROSS_FILESYSTEM=1
+      - cd $CODEBUILD_SRC_DIR && git init
+      - git add .
+      - git rm --cached -f git-secrets
+      - cd $CODEBUILD_SRC_DIR && git-secrets --scan
+      - echo Check AWS, Git, Python version
+      - aws --version && git --version && pip --version && python --version
+      - echo Check ENV Variable
+      - printenv
+      - cd $CODEBUILD_SRC_DIR
+      - pwd
+      - aws s3 cp s3://sgg-stg-environment/go-consumer-boilerplate/1.0.0/.env .
+      - ls -la
+      - cat .env
+      - echo Logging into AWS ECR...
+      - $(aws ecr get-login --no-include-email --region ap-southeast-1)
+      - REPOSITORY_URI=477104671248.dkr.ecr.ap-southeast-1.amazonaws.com/sgg-stg-go-consumer-boilerplate
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  build:
+    commands:
+      - echo build Docker image on `date`
+      - echo Building the Docker image...
+      - docker build -f docker/Dockerfile-stg -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo build Docker image complete `date`
+      - echo push latest Docker images to ECR...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing Image Definitions File...
+      - printf '[{"name":"sgg-stg-container-go-consumer-boilerplate","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > sgg-stg-task-go-consumer-boilerplate.json
+artifacts:
+  files: sgg-stg-task-go-consumer-boilerplate.json

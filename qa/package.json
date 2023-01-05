@@ -1,0 +1,59 @@
+{
+  "name": "qa",
+  "version": "1.0.0",
+  "description": "AT Consumer",
+  "main": ".eslintrc.js",
+  "scripts": {
+    "test": "cross-env mocha -r ts-node/register './api/**/*.test.ts' --recursive --timeout 180000",
+    "test:api": "cross-env",
+    "test:reports": "open 'reports/mochawesome/mochawesome.html'",
+    "update:grafana": "node grafana.js",
+    "lint": "eslint -c .eslintrc.js --ignore-path .eslintignore ./api/**/*.ts"
+  },
+  "_moduleAliases": {
+    "@data": "./data",
+    "@data_env": "./data-env",
+    "@helpers": "./helpers"
+  },
+  "author": "QA Team",
+  "license": "ISC",
+  "dependencies": {
+    "@types/chai": "4.2.14",
+    "@types/chai-json-schema": "1.4.6",
+    "@types/mocha": "8.0.4",
+    "@types/module-alias": "2.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.20.0",
+    "chai": "4.2.0",
+    "chai-json-schema": "1.5.1",
+    "cross-env": "7.0.2",
+    "dotenv": "8.2.0",
+    "mocha": "^8.2.1",
+    "module-alias": "2.2.2",
+    "mochawesome": "6.2.1",
+    "mysql": "2.17.1",
+    "supertest": "^6.0.1",
+    "ts-node": "9.0.0",
+    "typescript": "4.2.3"
+  },
+  "devDependencies": {
+    "@types/supertest": "2.0.10",
+    "@typescript-eslint/parser": "4.20.0",
+    "eslint": "7.14.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-node": "^11.1.0",
+    "husky": "4.3.0",
+    "lint-staged": "10.5.1",
+    "prettier": "2.2.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "./node_modules/.bin/eslint"
+    ]
+  }
+}

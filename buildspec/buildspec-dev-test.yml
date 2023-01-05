@@ -1,0 +1,29 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+  build:
+    commands:
+      - sleep 90
+      - echo Check AWS, Git, Python version
+      - aws --version && git --version && python --version
+      - echo Check ENV Variable
+      - printenv
+      - cd $CODEBUILD_SRC_DIR
+      - pwd
+      - cd qa
+      - aws s3 cp s3://sgg-dev-qa-environment/go-consumer-boilerplate/.env $CODEBUILD_SRC_DIR/qa
+      - rm -f package-lock.json
+      - node --version
+      - yarn --version
+      - yarn install
+      # - yarn test:api -- --grep @skip --invert
+      - yarn test:api
+  post_build:
+    commands:
+      - ls -la
+      # - ls -la reports/mochawesome
+      # - aws s3 cp $CODEBUILD_SRC_DIR/qa/reports/mochawesome/mochawesome.html s3://sgg-dev-qa-report/qa/go-consumer-boilerplate/reports/mochawesome-$(date +\%d-\%m-\%Y-\%H:\%M).html --acl public-read
+      # - aws s3 cp $CODEBUILD_SRC_DIR/qa/reports/mochawesome/mochawesome.json s3://sgg-dev-qa-report/qa/go-consumer-boilerplate/reports/mochawesome-$(date +\%d-\%m-\%Y-\%H:\%M).json --acl public-read
+      # - yarn update:grafana

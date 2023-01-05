@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  go-consumer-boilerplate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-loc
+    container_name: go-consumer-boilerplate
+    volumes:
+      - ./:/go/src/forkyid/go-consumer-boilerplate
+
+    command: ["air", "-c", "watcher.conf"]

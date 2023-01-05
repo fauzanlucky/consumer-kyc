@@ -1,0 +1,21 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "allowJs": true,
+    "paths": {
+      "@data/*": ["data/*"],
+      "@helpers/*": ["helpers/*"]
+    },
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true,
+    "strict": true,
+    "types": ["mocha", "node"],
+    "resolveJsonModule": true
+  }
+}
