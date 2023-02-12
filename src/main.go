@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/forkyid/go-consumer-boilerplate/src/receivers/v1"
+	v1 "github.com/fauzanlucky/consumer-kyc/src/receivers/v1"
 	"github.com/joho/godotenv"
 )
 

@@ -6,7 +6,7 @@ RUN apk update && \
 
 RUN go get -u github.com/cosmtrek/air
 
-WORKDIR $GOPATH/src/forkyid/go-consumer-boilerplate
+WORKDIR $GOPATH/src/fauzanlucky/consumer-kyc
 COPY . .
 
 RUN go mod download && go mod verify

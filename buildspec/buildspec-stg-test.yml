@@ -13,7 +13,7 @@ phases:
       - cd $CODEBUILD_SRC_DIR
       - pwd
       - cd qa
-      - aws s3 cp s3://sgg-stg-qa-environment/go-consumer-boilerplate/.env $CODEBUILD_SRC_DIR/qa
+      - aws s3 cp s3://sgg-stg-qa-environment/consumer-kyc/.env $CODEBUILD_SRC_DIR/qa
       - rm -f package-lock.json
       - node --version
       - yarn --version
@@ -24,6 +24,6 @@ phases:
     commands:
       - ls -la
       # - ls -la reports/mochawesome
-      # - aws s3 cp $CODEBUILD_SRC_DIR/qa/reports/mochawesome/mochawesome.html s3://sgg-stg-qa-report/qa/go-consumer-boilerplate/reports/mochawesome-$(date +\%d-\%m-\%Y-\%H:\%M).html --acl public-read
-      # - aws s3 cp $CODEBUILD_SRC_DIR/qa/reports/mochawesome/mochawesome.json s3://sgg-stg-qa-report/qa/go-consumer-boilerplate/reports/mochawesome-$(date +\%d-\%m-\%Y-\%H:\%M).json --acl public-read
+      # - aws s3 cp $CODEBUILD_SRC_DIR/qa/reports/mochawesome/mochawesome.html s3://sgg-stg-qa-report/qa/consumer-kyc/reports/mochawesome-$(date +\%d-\%m-\%Y-\%H:\%M).html --acl public-read
+      # - aws s3 cp $CODEBUILD_SRC_DIR/qa/reports/mochawesome/mochawesome.json s3://sgg-stg-qa-report/qa/consumer-kyc/reports/mochawesome-$(date +\%d-\%m-\%Y-\%H:\%M).json --acl public-read
       # - yarn update:grafana

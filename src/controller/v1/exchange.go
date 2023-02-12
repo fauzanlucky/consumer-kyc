@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/forkyid/go-consumer-boilerplate/src/rabbitmq"
+	"github.com/fauzanlucky/consumer-kyc/src/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
@@ -12,7 +12,7 @@ type Route struct {
 	ExchangeName string
 	ExchangeType string
 	QueueName    string
-	RouteName    string
+	RoutingKey   string
 	ConsumerTag  string
 	Handler      func(*Request, *amqp.Delivery)
 }
@@ -83,10 +83,10 @@ func (route *Route) Consume() {
 		return
 	}
 
-	log.Printf("Binding queue %s to exchange %s with routing key %s\n", q.Name, route.ExchangeName, route.RouteName)
+	log.Printf("Binding queue %s to exchange %s with routing key %s\n", q.Name, route.ExchangeName, route.RoutingKey)
 	if err = c.channel.QueueBind(
 		route.QueueName,    // queue name
-		route.RouteName,    // routing key
+		route.RoutingKey,   // routing key
 		route.ExchangeName, // exchange
 		false,              // noWait
 		nil,                // arguments

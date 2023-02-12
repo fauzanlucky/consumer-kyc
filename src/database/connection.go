@@ -12,23 +12,23 @@ import (
 )
 
 // DB Global Connection
-var dbMaster *gorm.DB
-var dbSlave *gorm.DB
+var dbMain *gorm.DB
+var dbReplica *gorm.DB
 
 // DB type hosts
 type DB struct {
-	Master *gorm.DB
-	Slave  *gorm.DB
+	Main    *gorm.DB
+	Replica *gorm.DB
 }
 
 // dbInit Initialization Connection
 // return connection, error
 func dbInit(hostType string, dbName string) *gorm.DB {
 
-	if hostType == "master" {
-		hostType = os.Getenv("DB_POSTGRES_HOST_MASTER")
-	} else if hostType == "slave" {
-		hostType = os.Getenv("DB_POSTGRES_HOST_SLAVE")
+	if hostType == "main" {
+		hostType = os.Getenv("DB_POSTGRES_HOST_MAIN")
+	} else if hostType == "replica" {
+		hostType = os.Getenv("DB_POSTGRES_HOST_REPLICA")
 	}
 
 	postgresCon := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s",
@@ -66,24 +66,24 @@ func dbInit(hostType string, dbName string) *gorm.DB {
 	return DB
 }
 
-// DBMaster function
-// return DBMaster
-func DBMaster() *gorm.DB {
-	if dbMaster == nil {
-		fmt.Println("No Active Master Connection Found")
-		fmt.Println("Creating New Master Connection")
-		dbMaster = dbInit("master", os.Getenv("DB_POSTGRES_DATABASE"))
+// DBMain function
+// return DBMain
+func DBMain() *gorm.DB {
+	if dbMain == nil {
+		fmt.Println("No Active Main Connection Found")
+		fmt.Println("Creating New Main Connection")
+		dbMain = dbInit("main", os.Getenv("DB_POSTGRES_DATABASE"))
 	}
-	return dbMaster
+	return dbMain
 }
 
-// DBSlave function
-// return DBSlave
-func DBSlave() *gorm.DB {
-	if dbSlave == nil {
-		fmt.Println("No Active Slave Connection Found")
-		fmt.Println("Creating New Slave Connection")
-		dbSlave = dbInit("slave", os.Getenv("DB_POSTGRES_DATABASE"))
+// DBReplica function
+// return DBReplica
+func DBReplica() *gorm.DB {
+	if dbReplica == nil {
+		fmt.Println("No Active Replica Connection Found")
+		fmt.Println("Creating New Replica Connection")
+		dbReplica = dbInit("replica", os.Getenv("DB_POSTGRES_DATABASE"))
 	}
-	return dbSlave
+	return dbReplica
 }

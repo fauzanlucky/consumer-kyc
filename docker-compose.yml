@@ -1,12 +1,12 @@
 version: "3"
 
 services:
-  go-consumer-boilerplate:
+  consumer-kyc:
     build:
       context: .
       dockerfile: docker/Dockerfile-loc
-    container_name: go-consumer-boilerplate
+    container_name: consumer-kyc
     volumes:
-      - ./:/go/src/forkyid/go-consumer-boilerplate
+      - ./:/go/src/fauzanlucky/consumer-kyc
 
     command: ["air", "-c", "watcher.conf"]
