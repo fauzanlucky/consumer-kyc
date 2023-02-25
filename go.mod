@@ -1,4 +1,4 @@
-module github.com/fauzanlucky/consumer-kyc
+module github.com/forkyid/consumer-kyc-update
 
 go 1.16
 

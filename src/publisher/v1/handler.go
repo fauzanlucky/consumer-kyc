@@ -1,6 +1,6 @@
 package v1
 
-import "github.com/fauzanlucky/consumer-kyc/src/constant"
+import "github.com/forkyid/consumer-kyc-update/src/constant"
 
 var (
 	CallbackRoute = Route{

@@ -4,7 +4,7 @@ RUN apk update && \
     apk add --no-cache git ca-certificates tzdata bash && \
     update-ca-certificates
 
-WORKDIR $GOPATH/src/github.com/fauzanlucky/consumer-kyc/src
+WORKDIR $GOPATH/src/github.com/forkyid/consumer-kyc-update/src
 COPY . .
 
 RUN mkdir docs
@@ -17,7 +17,7 @@ FROM scratch
 
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/src/github.com/fauzanlucky/consumer-kyc/src/.env .env
+COPY --from=builder /go/src/github.com/forkyid/consumer-kyc-update/src/.env .env
 COPY --from=builder /go/bin/main /go/bin/main
 
 ENTRYPOINT ["/go/bin/main"]

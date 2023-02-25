@@ -3,12 +3,12 @@ package v1
 import (
 	"encoding/json"
 
-	"github.com/fauzanlucky/consumer-kyc/src/constant"
-	httpAdditionalselfie "github.com/fauzanlucky/consumer-kyc/src/entity/v1/http/additionalselfie"
-	httpKYC "github.com/fauzanlucky/consumer-kyc/src/entity/v1/http/kyc"
-	publisher "github.com/fauzanlucky/consumer-kyc/src/publisher/v1"
-	"github.com/fauzanlucky/consumer-kyc/src/service/v1/additionalselfie"
-	"github.com/fauzanlucky/consumer-kyc/src/service/v1/kyc"
+	"github.com/forkyid/consumer-kyc-update/src/constant"
+	httpCallback "github.com/forkyid/consumer-kyc-update/src/entity/v1/http/callback"
+	httpKYC "github.com/forkyid/consumer-kyc-update/src/entity/v1/http/kyc"
+	publisher "github.com/forkyid/consumer-kyc-update/src/publisher/v1"
+	"github.com/forkyid/consumer-kyc-update/src/service/v1/additionalselfie"
+	"github.com/forkyid/consumer-kyc-update/src/service/v1/kyc"
 	"github.com/forkyid/go-utils/v1/aes"
 	"github.com/forkyid/go-utils/v1/jwt"
 	"github.com/forkyid/go-utils/v1/logger"
@@ -32,71 +32,61 @@ func NewController(
 }
 
 func (ctrl *Controller) Handler(request *Request, d *amqp.Delivery) {
-	publisher.CallbackRoute.RoutingKey = d.ReplyTo
+	publisher.CallbackRoute.RoutingKey = d.CorrelationId
 	publisher.CallbackRoute.QueueName = d.ReplyTo
 
 	var auth string
 	if val, ok := request.Headers["Authorization"]; ok && val.(string) != "" {
 		auth = val.(string)
 	} else {
-		logger.Errorf(nil, "no authorization found", constant.ErrNoAuthorizationFound)
-		publishCallback(constant.ErrNoAuthorizationFound)
+		err := constant.ErrNoAuthorizationFound
+		publishCallback(err)
 		d.Ack(false)
+		return
 	}
 	client, err := jwt.ExtractClient(auth)
 	if err != nil {
-		logger.Errorf(nil, "Extract client", err)
 		publishCallback(err)
 		d.Ack(false)
+		return
 	}
-	body := httpKYC.KYCRequest{}
+	body := httpKYC.UpdateKYCRequest{}
 	err = json.Unmarshal(request.Body, &body)
 	if err != nil {
-		logger.Errorf(nil, "Unmarshal body", err)
 		publishCallback(err)
 		d.Ack(false)
+		return
 	}
 	err = validation.Validator.Struct(&body)
 	if err != nil {
-		logger.Errorf(nil, "Unmarshal body", err)
 		publishCallback(err)
 		d.Ack(false)
+		return
 	}
-
-	tempData, _ := json.Marshal(body.Data)
+	if body.KYCID = aes.DecryptCMS(body.EncKYCID); body.KYCID <= 0 {
+		err = constant.ErrInvalidID
+		publishCallback(err)
+		d.Ack(false)
+		return
+	}
+	if body.SimilarAccountID = aes.DecryptCMS(body.EncSimilarAccountID); (body.KYCType == constant.KYCTypeUserSimilar || body.KYCType == constant.KYCTypeRetakeSimilar) && body.SimilarAccountID <= 0 {
+		err = constant.ErrInvalidID
+		publishCallback(err)
+		d.Ack(false)
+		return
+	}
 	switch body.KYCType {
-	case "user", "creator":
-		data := httpKYC.UpdateKYC{}
-		_ = json.Unmarshal(tempData, &data)
-		if data.KYCID = aes.DecryptCMS(data.EncKYCID); data.KYCID <= 0 {
-			logger.Errorf(nil, "decrypt ID", err)
-			err = constant.ErrInvalidID
-			publishCallback(err)
-			break
-		}
+	case constant.KYCTypeUser, constant.KYCTypeCreator:
+		err = ctrl.kycSvc.UpdateKYC(body.KYCID, body.KYCType, body.Status, body.Reason, client.Email)
 
-		err = ctrl.kycSvc.UpdateKYC(data.KYCID, data.Status, data.Reason, client.Email)
-		if err != nil {
-			logger.Errorf(nil, "Update KYC", err)
-			publishCallback(err)
-			d.Ack(false)
-			break
-		}
-	case "retake":
-		data := httpAdditionalselfie.UpdateKYCRetake{}
-		_ = json.Unmarshal(tempData, &data)
-		if data.AdditionalSelfieID = aes.DecryptCMS(data.EncAdditionalSelfieID); data.AdditionalSelfieID <= 0 {
-			err = constant.ErrInvalidID
-			break
-		}
+	case constant.KYCTypeRetake:
+		err = ctrl.additionalselfieSvc.UpdateRetake(body.KYCID, body.Status, body.Reason, client.Email)
 
-		err = ctrl.additionalselfieSvc.UpdateRetake(data.AdditionalSelfieID, data.Status, data.Reason, client.Email)
-		if err != nil {
-			logger.Errorf(nil, "Update KYC", err)
-			publishCallback(err)
-			d.Ack(false)
-			break
-		}
+	case constant.KYCTypeRetakeSimilar:
+		err = ctrl.additionalselfieSvc.UpdateRetakeSimilar(body.KYCID, body.SimilarAccountID, body.Status, client.Email)
+
+	case constant.KYCTypeUserSimilar:
+		err = ctrl.kycSvc.UpdateKYCUserSimilar(body.KYCID, body.SimilarAccountID, body.Status, client.Email)
 	}
 
 	publishCallback(err)
@@ -104,8 +94,14 @@ func (ctrl *Controller) Handler(request *Request, d *amqp.Delivery) {
 }
 
 func publishCallback(err error) {
-	data, _ := json.Marshal(err.Error())
+	payload := []byte("{}")
+	if err != nil {
+		logger.Errorf(nil, "", err)
+		payload, _ = json.Marshal(httpCallback.CallbackRequest{
+			ErrorMessage: err.Error(),
+		})
+	}
 	publisher.CallbackRoute.Publish(&publisher.Publish{
-		Body: string(data),
+		Body: string(payload),
 	}, constant.RMQMessageBasePriority)
 }

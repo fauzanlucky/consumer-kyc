@@ -3,9 +3,9 @@ package kyc
 import (
 	"encoding/json"
 
-	"github.com/fauzanlucky/consumer-kyc/src/constant"
-	dbKYC "github.com/fauzanlucky/consumer-kyc/src/entity/v1/db/kyc"
-	"github.com/fauzanlucky/consumer-kyc/src/repository/v1/kyc"
+	"github.com/forkyid/consumer-kyc-update/src/constant"
+	dbKYC "github.com/forkyid/consumer-kyc-update/src/entity/v1/db/kyc"
+	"github.com/forkyid/consumer-kyc-update/src/repository/v1/kyc"
 	"github.com/pkg/errors"
 )
 
@@ -22,18 +22,19 @@ func NewService(
 }
 
 type Servicer interface {
-	isKYCUnprocessed(kycID int) (isUnprocessed bool, err error)
-	UpdateKYC(kycID int, status, reason, processorEmail string) (err error)
+	validateKYC(kycID int) (isUnprocessed, isCreator bool, err error)
+	UpdateKYC(kycID int, kycType, status, reason, processorEmail string) (err error)
+	UpdateKYCUserSimilar(kycID, similarAccountID int, status, processorEmail string) (err error)
 }
 
-func (svc *Service) isKYCUnprocessed(kycID int) (isUnprocessed bool, err error) {
+func (svc *Service) validateKYC(kycID int) (isUnprocessed, isCreatorKYC bool, err error) {
 	kyc := dbKYC.KYC{}
 	kyc, err = svc.repo.GetKYCByID(kycID)
 	if err != nil {
 		err = errors.Wrap(err, "get KYC")
 		return
 	}
-	kycPayload := dbKYC.KYCPayload{}
+	kycPayload := dbKYC.KYCUserPayload{}
 	err = json.Unmarshal(kyc.Payload, &kycPayload)
 	if err != nil {
 		err = errors.Wrap(err, "unmarshal KYC payload")
@@ -45,18 +46,24 @@ func (svc *Service) isKYCUnprocessed(kycID int) (isUnprocessed bool, err error) 
 	} else {
 		isUnprocessed = true
 	}
+	isCreatorKYC = kycPayload.Data.IsCreator
 	return
 }
 
-func (svc *Service) UpdateKYC(kycID int, status, reason, processorEmail string) (err error) {
+func (svc *Service) UpdateKYC(kycID int, kycType, status, reason, processorEmail string) (err error) {
 	var isUnprocessed bool
-	isUnprocessed, err = svc.isKYCUnprocessed(kycID)
+	var isCreator bool
+	isUnprocessed, isCreator, err = svc.validateKYC(kycID)
 	if err != nil {
 		err = errors.Wrap(err, "validate kyc unprocessed")
 		return
 	}
 	if !isUnprocessed {
 		err = constant.ErrKYCAlreadyHandled
+		return
+	}
+	if (kycType == constant.KYCTypeUser) == isCreator {
+		err = constant.ErrInvalidID
 		return
 	}
 
@@ -66,5 +73,31 @@ func (svc *Service) UpdateKYC(kycID int, status, reason, processorEmail string) 
 		return
 	}
 
+	return
+}
+
+func (svc *Service) UpdateKYCUserSimilar(kycID, similarAccountID int, status, processorEmail string) (err error) {
+	kyc, err := svc.repo.GetKYCByID(kycID)
+	if err != nil {
+		err = errors.Wrap(err, "get kyc by id")
+		return
+	}
+	kycPayload := dbKYC.KYCUserPayload{}
+	err = json.Unmarshal(kyc.Payload, &kycPayload)
+	if err != nil {
+		err = errors.Wrap(err, "unmarshal payload")
+		return
+	}
+	similarAccountIdx := -1
+	for index, similarAccounts := range kycPayload.Data.SimilarAccounts {
+		if similarAccounts.Data.AccountID == similarAccountID {
+			similarAccountIdx = index
+		}
+	}
+	if similarAccountIdx == -1 {
+		err = constant.ErrSimilarIDNotFound
+		return
+	}
+	err = svc.repo.UpdateKYCSimilar(kycID, similarAccountIdx, status, processorEmail)
 	return
 }

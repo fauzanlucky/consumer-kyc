@@ -14,7 +14,8 @@ const (
 var (
 	_ = godotenv.Load()
 
-	KYCExchangeName = os.Getenv("RMQ_BE_KYC_EXCHANGE")
+	KYCExchangeName = os.Getenv("RMQ_BE_KYC_EXCHANGE_NAME")
 	KYCExchangeType = os.Getenv("RMQ_BE_KYC_EXCHANGE_TYPE")
-	KYCRoutingKey   = os.Getenv("RMQ_BE_KYC_EXCHANGE_TYPE")
+	KYCQueueName    = os.Getenv("RMQ_BE_KYC_QUEUE_NAME")
+	KYCRoutingKey   = os.Getenv("RMQ_BE_KYC_ROUTE_NAME")
 )

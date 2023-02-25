@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/fauzanlucky/consumer-kyc/src/rabbitmq"
+	"github.com/forkyid/consumer-kyc-update/src/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
@@ -27,46 +27,7 @@ func (route *Route) Publish(publish *Publish, priority uint8) (err error) {
 	}
 	defer channel.Close()
 
-	err = channel.ExchangeDeclare(
-		route.ExchangeName, // name
-		route.ExchangeType, // type
-		true,               // durable
-		false,              // auto-delete
-		false,              // internal
-		false,              // no-wait
-		nil,                // argument
-	)
-	if err != nil {
-		return
-	}
-
-	args := amqp.Table{
-		"x-queue-mode":   "lazy",
-		"x-max-priority": 255,
-	}
-	_, err = channel.QueueDeclare(
-		route.QueueName, // queue name
-		true,            // durable
-		false,           // delete when used
-		false,           // exclusive
-		false,           // no-wait
-		args,            // arguments
-	)
-	if err != nil {
-		return
-	}
-
-	err = channel.QueueBind(
-		route.QueueName,    // queue name
-		route.RoutingKey,   // routing key
-		route.ExchangeName, // exchange
-		false,              // noWait
-		nil,                // arguments
-	)
-	if err != nil {
-		return
-	}
-
+	// Queue and exchange should already be declared by client
 	err = channel.Publish(
 		route.ExchangeName, // exchange name
 		route.RoutingKey,   // routing key

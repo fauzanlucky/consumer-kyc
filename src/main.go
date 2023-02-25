@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	v1 "github.com/fauzanlucky/consumer-kyc/src/receivers/v1"
+	v1 "github.com/forkyid/consumer-kyc-update/src/receivers/v1"
 	"github.com/joho/godotenv"
 )
 

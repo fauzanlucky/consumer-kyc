@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/fauzanlucky/consumer-kyc/src/rabbitmq"
+	"github.com/forkyid/consumer-kyc-update/src/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
@@ -53,7 +53,7 @@ func (route *Route) Consume() {
 	fmt.Printf("got Channel, declaring Exchange (%q)\n", route.ExchangeName)
 	if err = c.channel.ExchangeDeclare(
 		route.ExchangeName, // name
-		"topic",            // type
+		route.ExchangeType, // type
 		true,               // durable
 		false,              // auto-deleted
 		false,              // internal
