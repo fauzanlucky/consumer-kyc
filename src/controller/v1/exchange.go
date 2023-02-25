@@ -45,7 +45,7 @@ func (route *Route) Consume() {
 	fmt.Println("got Connection, getting Channel")
 	c.channel, err = c.conn.Channel()
 	if err != nil {
-		log.Println(fmt.Sprintf("%s: %s", "Failed to open a channel", err))
+		log.Printf("%s: %s", "Failed to open a channel", err)
 		return
 	}
 	defer c.channel.Close()
@@ -60,7 +60,7 @@ func (route *Route) Consume() {
 		false,              // no-wait
 		nil,                // arguments
 	); err != nil {
-		log.Println(fmt.Sprintf("%s: %s", "Failed to declare an exchange", err))
+		log.Printf("%s: %s", "Failed to declare an exchange", err)
 		return
 	}
 
@@ -79,7 +79,7 @@ func (route *Route) Consume() {
 	)
 
 	if err != nil {
-		log.Println(fmt.Sprintf("%s: %s", "Failed to declare a queue", err))
+		log.Printf("%s: %s", "Failed to declare a queue", err)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (route *Route) Consume() {
 		false,              // noWait
 		nil,                // arguments
 	); err != nil {
-		log.Println(fmt.Sprintf("%s: %s", "Failed to bind a queue", err))
+		log.Printf("%s: %s", "Failed to bind a queue", err)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (route *Route) Consume() {
 		nil,             // args
 	)
 	if err != nil {
-		log.Println(fmt.Sprintf("%s: %s", "Failed to register a consumer", err))
+		log.Printf("%s: %s", "Failed to register a consumer", err)
 	}
 
 	handle(deliveries, route)
