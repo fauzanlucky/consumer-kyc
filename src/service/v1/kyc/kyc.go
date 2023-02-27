@@ -66,6 +66,9 @@ func (svc *Service) UpdateKYC(kycID int, kycType, status, reason, processorEmail
 		err = constant.ErrInvalidID
 		return
 	}
+	if status == constant.KYCStatusVerifiedCheck {
+		status = constant.KYCStatusApproved
+	}
 
 	err = svc.repo.UpdateKYCPayload(kycID, status, reason, processorEmail)
 	if err != nil {

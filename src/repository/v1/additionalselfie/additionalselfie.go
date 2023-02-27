@@ -35,11 +35,12 @@ func (repo *Repository) GetKYCRetakeByID(id int) (result dbAdditionalselfie.Addi
 
 func (repo *Repository) UpdateRetakePayload(id int, status, reason, processorEmail string) (err error) {
 	query := repo.main.Begin()
-	query = query.Exec(`
+	updateQueryString := fmt.Sprintf(`
 		UPDATE additional_selfies SET payload = 
-		jsonb_set(payload || '{"processed_at":"?","processed_by":"?"}', '{data}', payload->'data' || '{"status":"?","reason":"?"}')
-		WHERE id = ?
-	`, time.Now().Format(time.RFC3339), processorEmail, status, reason)
+		jsonb_set(payload || '{"processed_at":"%s","processed_by":"%s"}', '{data}', payload->'data' || '{"status":"%s","reason":"%s"}')
+		WHERE id = %d
+	`, time.Now().Format(time.RFC3339), processorEmail, status, reason, id)
+	query = query.Exec(updateQueryString)
 	err = query.Error
 	if err != nil {
 		query.Rollback()

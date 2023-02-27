@@ -34,11 +34,12 @@ func (route *Route) Publish(publish *Publish, priority uint8) (err error) {
 		false,              // mandatory
 		false,              // immediate
 		amqp.Publishing{
-			DeliveryMode: amqp.Persistent,
-			ContentType:  "application/json",
-			Body:         []byte(publish.Body),
-			Headers:      publish.Headers,
-			Priority:     priority,
+			DeliveryMode:  amqp.Persistent,
+			ContentType:   "application/json",
+			Body:          []byte(publish.Body),
+			Headers:       publish.Headers,
+			Priority:      priority,
+			CorrelationId: route.RoutingKey,
 		},
 	)
 
